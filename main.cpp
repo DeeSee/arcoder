@@ -277,7 +277,8 @@
 #include <iostream>
 #include <fstream>
 #include <string.h>
-#include <Arcoder.h>
+
+#include "Arcoder.h"
 
 
 #define PRINT_USAGE_AND_EXIT PrintUsage(argv[0]); return 1;
