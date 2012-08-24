@@ -1,119 +1,153 @@
 #include "BitStream.h"
 
+#include "assert.h"
+
+
 static const int kBitsInByte = 8;
 
-BitStream::BitStream(const int bitsInRegister,
-                       FILE* in,
-                       FILE* out)
-{
-    m_top = (1 << bitsInRegister) - 1;
 
-    m_bitsInRegister = bitsInRegister;
-    m_input = in;
-    m_output = out;
-    m_bitsToFollow = 0;
+class OutputBitStream : public IOutputBitStream // implements basic logic of bits accumulation
+{
+  int m_unflushedBitsCount;
+
+protected:
+
+  OutputBitStream() : m_unflushedBitsCount(0),
+                      m_bitsBuffer(0)
+  {}
+
+  char m_bitsBuffer;
+
+  virtual void FlushBuffer() = 0; // should flush byte from m_bitsBuffer to data container
+
+public:
+
+  // inherited methods
+
+  virtual void Finish();
+
+  virtual void PutBit(char bit);
+
+};
+
+/**************************************************************************************************/
+void OutputBitStream::PutBit(char bit)
+{
+  assert(bit == 0 || bit == 1);
+
+  m_unflushedBitsCount++;
+  m_bitsBuffer = (m_bitsBuffer << 1) | bit;
+
+  if (m_unflushedBitsCount == kBitsInByte)
+  {
+    FlushBuffer();
+    m_unflushedBitsCount = 0;
+    m_bitsBuffer = 0;
+  }
 }
 
-void BitStream::StartEncoding()
+/**************************************************************************************************/
+void OutputBitStream::Finish()
 {
-    // свободно бит в битовом буфере вывода
-    m_bitsToGo = 8;
-    // число бит, вывод которых отложен
-    m_bitsToFollow = 0;
+  if (m_unflushedBitsCount != 0)
+  {
+    m_bitsBuffer <<= (kBitsInByte - m_unflushedBitsCount);
+    FlushBuffer();
+  }
+}
+
+class StdOutputBitStream : public OutputBitStream
+{
+  StdOutputBitStream(); // disable default constructor
+
+  std::ostream& m_stream;
+
+protected:
+
+  virtual void FlushBuffer();
+
+public:
+
+  // constructor
+
+  StdOutputBitStream(std::ostream& i_stream) : m_stream(i_stream) {}
+};
+
+/**************************************************************************************************/
+void StdOutputBitStream::FlushBuffer()
+{
+  m_stream.write(&m_bitsBuffer, sizeof(m_bitsBuffer));
+}
+
+/**************************************************************************************************/
+IOutputBitStream* CreateOutputBitStream(std::ostream& i_stream)
+{
+  return new StdOutputBitStream(i_stream);
 }
 
 
-unsigned int BitStream::StartDecoding()
+class InputBitStream : public IInputBitStream // implements basic logic of bits accumulation
 {
-    // свободно бит в битовом буфере ввода
-    m_bitsToGo = 0;
-    // контроль числа "мусорных" бит в конце сжатого файла
-    m_garbageBitsCount = 0;
+  int m_storedBitsCount;
 
-    unsigned int result = 0;
+protected:
 
-    for (int i = 0; i < m_bitsInRegister; i++)
-    {
-            result = (result << 1) + InputBit();
-    }
+  InputBitStream() : m_storedBitsCount(0),
+                     m_bitsBuffer(0)
+  {}
 
-    return result;
+  char m_bitsBuffer;
+
+  virtual void LoadBuffer() = 0; // should load byte from data container to m_bitsBuffer
+
+public:
+
+  virtual char GetBit();
+
+};
+
+/**************************************************************************************************/
+char InputBitStream::GetBit()
+{
+  if (m_storedBitsCount == 0)
+  {
+    LoadBuffer();
+    m_storedBitsCount = kBitsInByte;
+  }
+
+  char result = (m_bitsBuffer & 0b10000000) >> (kBitsInByte - 1);
+
+  m_bitsBuffer <<= 1;
+  m_storedBitsCount--;
+
+  return result;
 }
 
-char BitStream::InputBit() // ввод 1 бита из сжатого файла
+class StdInputBitStream : public InputBitStream
 {
-    if (m_bitsToGo == 0)
-    {
-        m_buffer = getc(m_input);	// заполняем буфер битового ввода
-        if (m_buffer == EOF)	// входной поток сжатых данных исчерпан
-        {
-            // Причина попытки дальнейшего чтения: следующим
-            // декодируемым символом должен быть EOF_SYMBOL,
-            // но декодер об этом пока не знает и может готовиться
-            // к дальнейшему декодированию, втягивая новые биты
-            // (см. цикл for(;;) в процедуре decode_symbol). Эти
-            // биты — "мусор", реально не несут никакой
-            // информации и их можно выдать любыми
-            m_garbageBitsCount++;
-            // больше максимально возможного числа мусорных битов
-            if (m_garbageBitsCount > m_bitsInRegister - 2)
-            {
-                throw my_exception("Error in compressed file");
-            }
+  StdInputBitStream(); // disable default constructor
 
-            m_bitsToGo = 1;
-        }
-        else m_bitsToGo = kBitsInByte;
-    }
+  std::istream& m_stream;
 
-    char result = m_buffer & 1;
+protected:
 
-    m_buffer >>= 1;
+  virtual void LoadBuffer();
 
-    m_bitsToGo--;
+public:
 
-    return result;
+  // Constructor
+
+  StdInputBitStream(std::istream& i_stream) : m_stream(i_stream) {}
+};
+
+/**************************************************************************************************/
+void StdInputBitStream::LoadBuffer()
+{
+  m_stream.read(&m_bitsBuffer, sizeof(m_bitsBuffer));
 }
 
-void BitStream::OutputBitPlusFollow(int bit) // вывод одного очередного бита и тех, которые были отложены
+/**************************************************************************************************/
+IInputBitStream* CreateInputBitStream(std::istream& i_stream)
 {
-    OutputBit(bit);
-
-    while (m_bitsToFollow > 0)
-    {
-        OutputBit(!bit);
-        m_bitsToFollow--;
-    }
-}
-
-void BitStream::OutputBit(int bit) // вывод одного бита в сжатый файл
-{
-    m_buffer = (m_buffer >> 1) + (bit << 7); // в битовый буфер (один байт)
-    m_bitsToGo--;
-
-    if (m_bitsToGo == 0) // битовый буфер заполнен, сброс буфера
-    {
-        putc(m_buffer, m_output);
-        m_bitsToGo = kBitsInByte;
-    }
-}
-void BitStream::FollowBit()
-{
-    m_bitsToFollow++;
-}
-
-void BitStream::DoneEncoding(unsigned int lowBorder)
-{
-    m_bitsToFollow++;
-
-    if (lowBorder < (m_top >> 2) + 1)
-    {
-        OutputBitPlusFollow(0);
-    }
-    else
-    {
-        OutputBitPlusFollow(1);
-    }
-
-    putc(m_buffer >> m_bitsToGo, m_output); // записать незаполненный буфер
+  return new StdInputBitStream(i_stream);
 }

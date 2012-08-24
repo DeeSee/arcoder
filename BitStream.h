@@ -1,40 +1,29 @@
-#ifndef CODING_STATE_H
-#define CODING_STATE_H
+#ifndef BITSTREAM_H
+#define BITSTREAM_H
 
-#include "my_exception.h"
-#include <stdio.h>
+#include "fstream"
 
-class BitStream
+class IOutputBitStream
 {
-    int m_bitsToGo;
-    int m_bitsToFollow;
-    int m_garbageBitsCount;
-
-    FILE* m_input;
-    FILE* m_output;
-
-    unsigned long m_top;
-    int m_bitsInRegister;
-    unsigned char m_buffer;
-
-    BitStream();
-
 public:
 
-    BitStream(const int bitsInRegister,
-               FILE* in, FILE* out);
+  virtual void PutBit(char i_bit) = 0; // puts one bit into the stream
 
-    void StartEncoding();
-    unsigned int StartDecoding();
+  virtual void Finish() = 0; // finalizes stream
 
-    char InputBit();
-
-    void OutputBitPlusFollow(int bit);
-    void OutputBit(int bit);
-
-    void FollowBit();
-
-    void DoneEncoding(unsigned int lowBorder);
+  virtual ~IOutputBitStream() {} // virtual destructor
 };
 
-#endif // CODING_STATE_H
+class IInputBitStream
+{
+public:
+
+  virtual char GetBit() = 0; // gets one bit from the stream
+
+  virtual ~IInputBitStream() {} // virtual destructor
+};
+
+IOutputBitStream* CreateOutputBitStream(std::ostream& i_stream);
+IInputBitStream* CreateInputBitStream(std::istream& i_stream);
+
+#endif // BITSTREAM_H
