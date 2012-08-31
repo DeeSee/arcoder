@@ -115,7 +115,7 @@ char InputBitStream::GetBit()
     m_storedBitsCount = kBitsInByte;
   }
 
-  char result = (m_bitsBuffer & 0b10000000) >> (kBitsInByte - 1);
+  char result = (m_bitsBuffer & 0x80) >> (kBitsInByte - 1);
 
   m_bitsBuffer <<= 1;
   m_storedBitsCount--;
