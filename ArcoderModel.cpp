@@ -91,7 +91,11 @@ void ArcoderModel::CalculateBounds(int i_symbol,
 
   unsigned long range = io_upperBound - io_lowerBound + 1;
 
-  unsigned int symbolIndex = m_symbolToIndex.at(i_symbol);
+  std::map<int, int>::const_iterator it = m_symbolToIndex.find(i_symbol);
+
+  assert(it != m_symbolToIndex.end());
+
+  unsigned int symbolIndex = (*it).second;
 
   assert(m_cumulativeFreqs.size() > symbolIndex);
 
@@ -130,7 +134,11 @@ int ArcoderModel::GetSymbol(unsigned long i_value,
 
    io_lowerBound += range * m_cumulativeFreqs[symbolIndex] / m_cumulativeFreqs[0];
 
-   int result = m_indexToSymbol.at(symbolIndex);
+   std::map<int, int>::const_iterator it = m_indexToSymbol.find(symbolIndex);
+
+   assert(it != m_indexToSymbol.end());
+
+   int result = (*it).second;
 
    assert(SymbolExists(result));
 
