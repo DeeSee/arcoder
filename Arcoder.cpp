@@ -316,7 +316,7 @@ void ArcoderImpl::Compress(std::istream& i_input,
   union
   {
     int intBuf;
-    unsigned char byteBuf[sizeof(intBuf)];
+    unsigned char byteBuf[sizeof(int)];
   } buf;
 
   buf.intBuf = 0;
@@ -394,7 +394,7 @@ void ArcoderImpl::Decompress(std::istream& i_input,
   union
   {
     int intBuf;
-    unsigned char byteBuf[sizeof(intBuf)];
+    unsigned char byteBuf[sizeof(int)];
   } buf;
 
   buf.intBuf = 0;
