@@ -89,7 +89,7 @@ void ArcoderModel::CalculateBounds(int i_symbol,
 {
   assert(SymbolExists(i_symbol));
 
-  unsigned long range = io_upperBound - io_lowerBound + 1;
+  unsigned long long range = io_upperBound - io_lowerBound + 1;
 
   std::map<int, int>::const_iterator it = m_symbolToIndex.find(i_symbol);
 
@@ -114,12 +114,13 @@ int ArcoderModel::GetSymbol(unsigned long i_value,
 //    декодирование одного символа по указанной таблице вероятностей
 //    (возвращает индекс символа в таблице)
 //   DWORD range, cum;
-   unsigned long range = io_upperBound - io_lowerBound + 1;
+   unsigned long long range = io_upperBound - io_lowerBound + 1;
 
    // число cum - это число value, пересчитанное из интервала
    // low..high в интервал 0..context[0]
 
-   int cumulativeFreq = ((i_value - io_lowerBound + 1) * m_cumulativeFreqs[0] - 1) / range;
+   int cumulativeFreq = (((unsigned long long ) (i_value - io_lowerBound + 1)) * m_cumulativeFreqs[0] - 1)
+						/ range;
 
    int symbolIndex = 1;
    // поиск интервала, соответствующего числу cum (начиная с самого частого символа)
