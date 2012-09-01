@@ -1,2 +1,13 @@
 /arcoder
 build/
+
+#visual studio stuff
+*.opensdf
+*.sdf
+*.suo
+*.vcxproj.filters
+*.vcxproj.user
+msvs_project/arcoder/ipch
+msvs_project/arcoder/Debug
+msvs_project/arcoder/Release
+
