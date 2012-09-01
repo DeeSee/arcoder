@@ -63,6 +63,7 @@ class ArcoderImpl : public Arcoder
   int DecodeSymbol(ArcoderModel& i_model);
 
   ArcoderImpl();
+  void Init();
 
 public:
 
@@ -85,14 +86,24 @@ public:
 };
 
 /**************************************************************************************************/
-ArcoderImpl::ArcoderImpl(std::istream& i_modelsSource) : m_elementSize(kDefaultElementSize)
+void ArcoderImpl::Init()
 {
+  m_elementSize = kDefaultElementSize;
+  m_modelChoosingCallback = NULL;
+}
+
+/**************************************************************************************************/
+ArcoderImpl::ArcoderImpl(std::istream& i_modelsSource)
+{
+  Init();
   LoadModel(i_modelsSource);
 }
 
 /**************************************************************************************************/
-ArcoderImpl::ArcoderImpl(const std::vector<int>& i_symbolCount) : m_elementSize(kDefaultElementSize)
+ArcoderImpl::ArcoderImpl(const std::vector<int>& i_symbolCount)
 {
+  Init();
+
   for (unsigned int i = 0; i < i_symbolCount.size(); i++)
   {
     m_models.push_back(ArcoderModel());
@@ -108,6 +119,7 @@ void ArcoderImpl::SetModelChoosingCallback(modelChoosingCallback i_callback)
   m_modelChoosingCallback = i_callback;
 }
 
+/**************************************************************************************************/
 void ArcoderImpl::SetElementSize(int i_size)
 {
   m_elementSize = i_size;
