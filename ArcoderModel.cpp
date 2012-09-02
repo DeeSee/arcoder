@@ -99,9 +99,9 @@ void ArcoderModel::CalculateBounds(int i_symbol,
 
   assert(m_cumulativeFreqs.size() > symbolIndex);
 
-  io_upperBound = io_lowerBound +
-                  range * m_cumulativeFreqs[symbolIndex - 1] / m_cumulativeFreqs[0] - 1;
-  io_lowerBound += range * m_cumulativeFreqs[symbolIndex] / m_cumulativeFreqs[0];
+  io_upperBound = (unsigned long)(io_lowerBound +
+                  range * m_cumulativeFreqs[symbolIndex - 1] / m_cumulativeFreqs[0] - 1);
+  io_lowerBound += (unsigned long)(range * m_cumulativeFreqs[symbolIndex] / m_cumulativeFreqs[0]);
 }
 
 /**************************************************************************************************/
@@ -119,8 +119,8 @@ int ArcoderModel::GetSymbol(unsigned long i_value,
    // число cum - это число value, пересчитанное из интервала
    // low..high в интервал 0..context[0]
 
-   int cumulativeFreq = (((unsigned long long ) (i_value - io_lowerBound + 1)) * m_cumulativeFreqs[0] - 1)
-						/ range;
+   int cumulativeFreq = (int)((((unsigned long long ) (i_value - io_lowerBound + 1)) * m_cumulativeFreqs[0] - 1)
+						/ range);
 
    int symbolIndex = 1;
    // поиск интервала, соответствующего числу cum (начиная с самого частого символа)
@@ -131,9 +131,9 @@ int ArcoderModel::GetSymbol(unsigned long i_value,
 
    // пересчет границ интервала арифметического кодирования
    // symbol==1 - самый частый символ
-   io_upperBound = io_lowerBound + range * m_cumulativeFreqs[symbolIndex - 1] / m_cumulativeFreqs[0] - 1;
+   io_upperBound = (unsigned long)(io_lowerBound + range * m_cumulativeFreqs[symbolIndex - 1] / m_cumulativeFreqs[0] - 1);
 
-   io_lowerBound += range * m_cumulativeFreqs[symbolIndex] / m_cumulativeFreqs[0];
+   io_lowerBound += (unsigned long)(range * m_cumulativeFreqs[symbolIndex] / m_cumulativeFreqs[0]);
 
    std::map<int, int>::const_iterator it = m_indexToSymbol.find(symbolIndex);
 
