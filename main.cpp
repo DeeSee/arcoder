@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string.h>
 #include <assert.h>
+#include <limits.h>
 
 #include "Arcoder.h"
 
@@ -102,6 +103,22 @@ int ParseOptions(int i_argc, const char** i_argv, ArcoderSettings& o_settings)
 	return 0;
 }
 
+int modelChoosingCallback(int i_symbol, void* i_choosingTable)
+{
+  int* choosingTable = ((int *)i_choosingTable) + 1;
+  int tableSize = *((int *)i_choosingTable);
+
+  for (int i = 0; i < tableSize; i++)
+  {
+    if (choosingTable[i * 2] == i_symbol)
+    {
+      return choosingTable[i * 2 + 1];
+    }
+  }
+
+  return 0;
+}
+
 int main(int argc, char** argv)
 {
   ArcoderSettings settings;
@@ -140,6 +157,8 @@ int main(int argc, char** argv)
     }
 
 		coder = CreateArcoder(model);
+
+    model.close();
   }
   else
   {
@@ -147,6 +166,43 @@ int main(int argc, char** argv)
   }
 
   assert(coder != NULL);
+
+  int* modelChoosingTable = NULL;
+
+  if (!settings.modelChoosingRulesFileName.empty())
+  {
+    std::ifstream modelChoosingRules(settings.modelChoosingRulesFileName.c_str());
+    if (!modelChoosingRules.good())
+    {
+      std::cout << "Couldn't open " << settings.modelChoosingRulesFileName.c_str() << " for reading" << std::endl;
+      return 2;
+    }
+
+    int choosingRulesSize = 0;
+
+    modelChoosingRules.read((char *)&choosingRulesSize, sizeof(choosingRulesSize));
+
+    if (choosingRulesSize <= 0)
+    {
+      std::cout << "Invalid model choosing rules file" << std::endl;
+      return 2;
+    }
+
+    modelChoosingTable = new int[choosingRulesSize + 1];
+    modelChoosingTable[0] = choosingRulesSize;
+
+    modelChoosingRules.read((char *)(modelChoosingTable + 1), sizeof(int));
+
+    if (!(modelChoosingRules.good() || modelChoosingRules.eof()))
+    {
+      std::cout << "Failed to read file " << settings.modelChoosingRulesFileName.c_str() << std::endl;
+      return 2;
+    }
+
+    modelChoosingRules.close();
+
+    coder->SetModelChoosingCallback(modelChoosingCallback, modelChoosingTable);
+  }
 
   if (settings.compress)
   {
@@ -159,6 +215,11 @@ int main(int argc, char** argv)
 
   in.close();
   out.close();
+
+  if (modelChoosingTable)
+  {
+    delete [] modelChoosingTable;
+  }
 
   return 0;
 }
