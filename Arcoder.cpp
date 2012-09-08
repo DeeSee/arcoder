@@ -27,9 +27,10 @@
 #define DO_NOTHING // define for empty action
 
 
-int DefaultModelChoosingCallback(int symbol)
+int DefaultModelChoosingCallback(int i_symbol, void* i_data)
 {
-  (void) symbol; // to avoid warning
+  (void) i_symbol; // to avoid warning
+  (void) i_data; // to avoid warning
   return 0;
 }
 
@@ -51,6 +52,7 @@ class ArcoderImpl : public Arcoder
 
   unsigned int m_elementSize;
   modelChoosingCallback m_modelChoosingCallback;
+  void* m_modelChoosingCallbackUserData;
 
   IOutputBitStream* m_outputBitStream;
   IInputBitStream* m_inputBitStream;
@@ -75,7 +77,7 @@ public:
   virtual bool LoadModel(std::istream&);
   virtual void SaveModel(std::ostream&);
 
-  virtual void SetModelChoosingCallback(modelChoosingCallback);
+  virtual void SetModelChoosingCallback(modelChoosingCallback, void*);
   virtual void SetElementSize(int);
 
   virtual void Compress(std::istream& i_input,
@@ -114,9 +116,10 @@ ArcoderImpl::ArcoderImpl(const std::vector<int>& i_symbolCount)
 }
 
 /**************************************************************************************************/
-void ArcoderImpl::SetModelChoosingCallback(modelChoosingCallback i_callback)
+void ArcoderImpl::SetModelChoosingCallback(modelChoosingCallback i_callback, void* i_userData)
 {
   m_modelChoosingCallback = i_callback;
+  m_modelChoosingCallbackUserData = i_userData;
 }
 
 /**************************************************************************************************/
@@ -338,7 +341,7 @@ void ArcoderImpl::Compress(std::istream& i_input,
   {
     if (prevSymbol != kInvalidSymbol)
     {
-      m_currentModelIndex = m_modelChoosingCallback(prevSymbol);
+      m_currentModelIndex = m_modelChoosingCallback(prevSymbol, m_modelChoosingCallbackUserData);
     }
     else
     {
@@ -364,7 +367,7 @@ void ArcoderImpl::Compress(std::istream& i_input,
     prevSymbol = buf.intBuf;
   }
 
-  m_currentModelIndex = m_modelChoosingCallback(prevSymbol);
+  m_currentModelIndex = m_modelChoosingCallback(prevSymbol, m_modelChoosingCallbackUserData);
   EncodeSymbol(m_models[m_currentModelIndex].EOFSymbolCode(),
                m_models[m_currentModelIndex]);
 
@@ -416,7 +419,7 @@ void ArcoderImpl::Decompress(std::istream& i_input,
   {
     if (prevSymbol != kInvalidSymbol)
     {
-      m_currentModelIndex = m_modelChoosingCallback(prevSymbol);
+      m_currentModelIndex = m_modelChoosingCallback(prevSymbol, m_modelChoosingCallbackUserData);
     }
     else
     {
