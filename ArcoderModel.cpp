@@ -171,16 +171,16 @@ void ArcoderModel::Load(const std::vector<int>& i_symbols,
   Reset();
 
   // Used to sort frequencies in ascending order
-  std::map<int, int> sortingMap;
+  std::multimap<int, int> sortingMap;
 
   for (unsigned int i = 0; i < i_freqs.size(); i++)
   {
     assert(i_symbols[i] != kNewSymbolCode && i_symbols[i] != kEOFSymbolCode);
 
-    sortingMap[i_freqs[i]] = i_symbols[i];
+    sortingMap.insert(std::pair<int, int>(i_freqs[i], i_symbols[i]));
   }
 
-  for (std::map<int, int>::reverse_iterator it = sortingMap.rbegin(); it != sortingMap.rend(); it++)
+  for (std::multimap<int, int>::reverse_iterator it = sortingMap.rbegin(); it != sortingMap.rend(); it++)
   {
     AddSymbol(it->second, it->first);
   }
