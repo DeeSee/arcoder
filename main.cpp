@@ -103,7 +103,7 @@ int ParseOptions(int i_argc, const char** i_argv, ArcoderSettings& o_settings)
 	return 0;
 }
 
-int modelChoosingCallback(int i_symbol, void* i_choosingTable)
+int choosingCallback(int i_symbol, void* i_choosingTable)
 {
   int* choosingTable = ((int *)i_choosingTable) + 1;
   int tableSize = *((int *)i_choosingTable);
@@ -201,7 +201,7 @@ int main(int argc, char** argv)
 
     modelChoosingRules.close();
 
-    coder->SetModelChoosingCallback(modelChoosingCallback, modelChoosingTable);
+    coder->SetModelChoosingCallback(choosingCallback, modelChoosingTable);
   }
 
   if (settings.compress)
