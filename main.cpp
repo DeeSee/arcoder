@@ -130,8 +130,10 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  std::ifstream in(settings.inputFileName.c_str());
-  std::ofstream out(settings.outputFileName.c_str());
+  std::ifstream in;
+  in.open(settings.inputFileName.c_str(), std::ifstream::in | std::ifstream::binary);
+  std::ofstream out;
+  out.open(settings.outputFileName.c_str(), std::ofstream::out | std::ofstream::binary);
 
   if (!in.good())
   {
@@ -149,7 +151,8 @@ int main(int argc, char** argv)
   
   if (!settings.modelFileName.empty())
   {
-    std::ifstream model(settings.modelFileName.c_str());
+    std::ifstream model;
+    model.open(settings.modelFileName.c_str(), std::ifstream::in | std::ifstream::binary);
     if (!model.good())
     {
       std::cout << "Couldn't open " << settings.modelFileName.c_str() << " for reading" << std::endl;
@@ -171,7 +174,8 @@ int main(int argc, char** argv)
 
   if (!settings.modelChoosingRulesFileName.empty())
   {
-    std::ifstream modelChoosingRules(settings.modelChoosingRulesFileName.c_str());
+    std::ifstream modelChoosingRules;
+    modelChoosingRules.open(settings.modelChoosingRulesFileName.c_str(), std::ifstream::in | std::ifstream::binary);
     if (!modelChoosingRules.good())
     {
       std::cout << "Couldn't open " << settings.modelChoosingRulesFileName.c_str() << " for reading" << std::endl;
