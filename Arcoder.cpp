@@ -143,14 +143,17 @@ bool ArcoderImpl::LoadModel(std::istream& i_input)
   m_models.assign(modelCount, ArcoderModel());
 
   m_escapes.clear();
+  m_escapes.assign(modelCount, ArcoderModel());
 
   for (int i = 0; i < modelCount; i++)
   {
     int symbolCount = 0;
     i_input.read((char *) &symbolCount, sizeof(symbolCount));
 
-    m_escapes.push_back(ArcoderModel());
-    m_escapes[i].InitUniformModel(symbolCount);
+    int maxSymbolValue = 0;
+    i_input.read((char *) &maxSymbolValue, sizeof(maxSymbolValue));
+
+    m_escapes[i].InitUniformModel(maxSymbolValue);
 
     if (i_input.eof() || symbolCount <= 0)
     {
@@ -163,6 +166,11 @@ bool ArcoderImpl::LoadModel(std::istream& i_input)
     // std::vector guarantees sequental data storage
     // in file, symbols table is followed by freqs table
     i_input.read((char *) &symbols[0], sizeof(symbols[0]) * symbolCount);
+
+    if (i_input.eof())
+    {
+      return false;
+    }
 
     std::vector<int> freqs;
     freqs.assign(symbolCount, 0);
