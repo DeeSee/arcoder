@@ -27,9 +27,10 @@
 #define DO_NOTHING // define for empty action
 
 
-int DefaultModelChoosingCallback(int i_symbol, void* i_data)
+int DefaultModelChoosingCallback(int i_symbol, unsigned int i_serialIndex, void* i_data)
 {
   (void) i_symbol; // to avoid warning
+  (void) i_serialIndex; // to avoid warning
   (void) i_data; // to avoid warning
   return 0;
 }
@@ -37,7 +38,7 @@ int DefaultModelChoosingCallback(int i_symbol, void* i_data)
 class ArcoderImpl : public Arcoder
 {
   static const int kInvalidSymbol = -1;
-  static const int kDefaultElementSize = 1;
+  static const int kDefaultElementSize = 4; // in bytes
 
   unsigned long m_upperBound;
   unsigned long m_lowerBound;
@@ -76,6 +77,8 @@ public:
 
   virtual bool LoadModel(std::istream&);
   virtual void SaveModel(std::ostream&);
+
+  virtual void InitUniformModel(unsigned int);
 
   virtual void SetModelChoosingCallback(modelChoosingCallback, void*);
   virtual void SetElementSize(int);
@@ -212,11 +215,31 @@ void ArcoderImpl::SaveModel(std::ostream& i_output)
 }
 
 /**************************************************************************************************/
+void ArcoderImpl::InitUniformModel(unsigned int i_symbolsCount)
+{
+  /*m_models.clear();
+  m_models.push_back(ArcoderModel());
+  m_models[0].InitUniformModel(i_symbolsCount);
+
+  m_escapes.clear();
+  m_escapes.push_back(ArcoderModel());
+  m_escapes[0].InitUniformModel(i_symbolsCount);*/
+  for (int i = 0; i < m_models.size(); i++)
+  {
+    m_models[i].InitUniformModel(i_symbolsCount);
+    m_escapes[i].InitUniformModel(i_symbolsCount);
+  }
+}
+
+/**************************************************************************************************/
 void ArcoderImpl::EncodeSymbol(int i_symbol, const ArcoderModel& i_model)
 {
   i_model.CalculateBounds(i_symbol,
                            m_lowerBound,
                            m_upperBound);
+  
+  // m_lowerBound MUST be less than m_upperBound
+  assert(m_lowerBound < m_upperBound);
 
   // далее при необходимости - вывод бита или меры от зацикливания
   for (;;)
@@ -344,12 +367,13 @@ void ArcoderImpl::Compress(std::istream& i_input,
 
   buf.intBuf = 0;
   int prevSymbol = kInvalidSymbol;
+  unsigned int symbolIndex = 0;
 
   while (!(i_input.read((char *) buf.byteBuf, m_elementSize).eof()))
   {
     if (prevSymbol != kInvalidSymbol)
     {
-      m_currentModelIndex = m_modelChoosingCallback(prevSymbol, m_modelChoosingCallbackUserData);
+      m_currentModelIndex = m_modelChoosingCallback(prevSymbol, symbolIndex, m_modelChoosingCallbackUserData);
     }
     else
     {
@@ -373,9 +397,10 @@ void ArcoderImpl::Compress(std::istream& i_input,
 
     m_models[m_currentModelIndex].Update(buf.intBuf);
     prevSymbol = buf.intBuf;
+    symbolIndex++;
   }
 
-  m_currentModelIndex = m_modelChoosingCallback(prevSymbol, m_modelChoosingCallbackUserData);
+  m_currentModelIndex = 0;
   EncodeSymbol(m_models[m_currentModelIndex].EOFSymbolCode(),
                m_models[m_currentModelIndex]);
 
@@ -422,12 +447,13 @@ void ArcoderImpl::Decompress(std::istream& i_input,
 
   buf.intBuf = 0;
   int prevSymbol = kInvalidSymbol;
+  unsigned int symbolIndex = 0;
 
   while (true)
   {
     if (prevSymbol != kInvalidSymbol)
     {
-      m_currentModelIndex = m_modelChoosingCallback(prevSymbol, m_modelChoosingCallbackUserData);
+      m_currentModelIndex = m_modelChoosingCallback(prevSymbol, symbolIndex, m_modelChoosingCallbackUserData);
     }
     else
     {
@@ -458,6 +484,7 @@ void ArcoderImpl::Decompress(std::istream& i_input,
     prevSymbol = buf.intBuf;
 
     i_output.write((const char *) buf.byteBuf, m_elementSize);
+    symbolIndex++;
   }
 }
 

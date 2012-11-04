@@ -3,6 +3,7 @@
 #include <string.h>
 #include <assert.h>
 #include <limits.h>
+#include <stdlib.h>
 
 #include "Arcoder.h"
 
@@ -10,6 +11,7 @@
 struct ArcoderSettings
 {
 	bool compress;
+  int symbolsCount;
 	std::string inputFileName;
 	std::string outputFileName;
 	std::string modelFileName;
@@ -18,10 +20,7 @@ struct ArcoderSettings
 	ArcoderSettings()
 	{
 		compress = true;
-		inputFileName = std::string();
-		outputFileName = std::string();
-		inputFileName = std::string();
-		modelChoosingRulesFileName = std::string();
+    symbolsCount = -1;
 	}
 };
 
@@ -75,12 +74,31 @@ int ParseOptions(int i_argc, const char** i_argv, ArcoderSettings& o_settings)
 			}
 			else if (i_argv[i][1] == 'm')
 			{
+        if (o_settings.symbolsCount != -1)
+        {
+          std::cout << "Characters count and model file must not be set simulteniously" << std::endl;
+          return 1;
+        }
 				o_settings.modelFileName = std::string(i_argv[i + 1]);
 			}
 			else if (i_argv[i][1] == 'c')
 			{
-				o_settings.modelFileName = std::string(i_argv[i + 1]);
+				o_settings.modelChoosingRulesFileName = std::string(i_argv[i + 1]);
 			}
+      else if (i_argv[i][1] == 'a')
+      {
+        if (!o_settings.modelFileName.empty())
+        {
+          std::cout << "Characters count and model file must not be set simulteniously" << std::endl;
+          return 1;
+        }
+        o_settings.symbolsCount = atoi(i_argv[i + 1]);
+      }
+      else
+      {
+        std::cout << "Unrecognized option: " << i_argv[i] << std::endl;
+        return 1;
+      }
 
 			i++;
 		}
@@ -103,8 +121,9 @@ int ParseOptions(int i_argc, const char** i_argv, ArcoderSettings& o_settings)
 	return 0;
 }
 
-int choosingCallback(int i_symbol, void* i_choosingTable)
+int choosingCallback(int i_symbol, unsigned int i_symbolIndex, void* i_choosingTable)
 {
+  (void)i_symbolIndex;
   int* choosingTable = ((int *)i_choosingTable) + 1;
   int tableSize = *((int *)i_choosingTable);
 

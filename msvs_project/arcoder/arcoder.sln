@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "arcoder", "arcoder.vcxproj", "{47853DE3-0E8A-49E4-8455-2FB468891A67}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "signs_compression", "..\signs_compression\signs_compression.vcxproj", "{C65CB21C-E93A-458D-A1C9-AA82B037F119}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -13,6 +15,10 @@ Global
 		{47853DE3-0E8A-49E4-8455-2FB468891A67}.Debug|Win32.Build.0 = Debug|Win32
 		{47853DE3-0E8A-49E4-8455-2FB468891A67}.Release|Win32.ActiveCfg = Release|Win32
 		{47853DE3-0E8A-49E4-8455-2FB468891A67}.Release|Win32.Build.0 = Release|Win32
+		{C65CB21C-E93A-458D-A1C9-AA82B037F119}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C65CB21C-E93A-458D-A1C9-AA82B037F119}.Debug|Win32.Build.0 = Debug|Win32
+		{C65CB21C-E93A-458D-A1C9-AA82B037F119}.Release|Win32.ActiveCfg = Release|Win32
+		{C65CB21C-E93A-458D-A1C9-AA82B037F119}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

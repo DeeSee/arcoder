@@ -55,7 +55,6 @@ void ArcoderModel::InitUniformModel(int i_symbolCount)
     AddSymbol(i);
   }
 }
-
 /**************************************************************************************************/
 void ArcoderModel::Update(int i_symbol)
 {
