@@ -208,7 +208,17 @@ void ArcoderImpl::SaveModel(std::ostream& i_output)
 
     int symbolCount = symbols.size();
 
+    int maxSymbolValue = symbols[0];
+    for (int j = 1; j < symbolCount; j++)
+    {
+      if (symbols[j] > maxSymbolValue)
+      {
+        maxSymbolValue = symbols[j];
+      }
+    }
+
     i_output.write((const char *) &symbolCount, sizeof(symbolCount));
+    i_output.write((const char *) &maxSymbolValue, sizeof(maxSymbolValue));
     i_output.write((const char *) &symbols[0], sizeof(symbols[0]) * symbolCount);
     i_output.write((const char *) &freqs[0], sizeof(freqs[0]) * symbolCount);
   }
