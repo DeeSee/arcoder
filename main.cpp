@@ -16,6 +16,7 @@ struct ArcoderSettings
 	std::string outputFileName;
 	std::string modelFileName;
 	std::string modelChoosingRulesFileName;
+	std::string modelToSaveFileName;
 
 	ArcoderSettings()
 	{
@@ -93,6 +94,10 @@ int ParseOptions(int i_argc, const char** i_argv, ArcoderSettings& o_settings)
           return 1;
         }
         o_settings.symbolsCount = atoi(i_argv[i + 1]);
+      }
+      else if (i_argv[i][1] == 's')
+      {
+        o_settings.modelToSaveFileName = std::string(i_argv[i + 1]);
       }
       else
       {
@@ -238,6 +243,13 @@ int main(int argc, char** argv)
 
   in.close();
   out.close();
+
+  if (!settings.modelToSaveFileName.empty())
+  {
+    std::ofstream modelOut(settings.modelToSaveFileName.c_str());
+    coder->SaveModel(modelOut);
+    modelOut.close();
+  }
 
   if (modelChoosingTable)
   {
