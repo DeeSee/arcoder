@@ -246,7 +246,8 @@ int main(int argc, char** argv)
 
   if (!settings.modelToSaveFileName.empty())
   {
-    std::ofstream modelOut(settings.modelToSaveFileName.c_str());
+    std::ofstream modelOut;
+    modelOut.open(settings.modelToSaveFileName.c_str(), std::ofstream::out | std::ofstream::binary);
     coder->SaveModel(modelOut);
     modelOut.close();
   }
