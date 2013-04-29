@@ -132,15 +132,13 @@ int choosingCallback(int i_symbol, unsigned int i_symbolIndex, void* i_choosingT
   int* choosingTable = ((int *)i_choosingTable) + 1;
   int tableSize = *((int *)i_choosingTable);
 
-  for (int i = 0; i < tableSize; i++)
+  if (i_symbolIndex >= tableSize)
   {
-    if (choosingTable[i * 2] == i_symbol)
-    {
-      return choosingTable[i * 2 + 1];
-    }
+    std::cout << "Reached the end of table, returning 0" << std::endl;
+    return 0;
   }
 
-  return 0;
+  return choosingTable[i_symbolIndex];
 }
 
 int main(int argc, char** argv)
@@ -216,10 +214,10 @@ int main(int argc, char** argv)
       return 2;
     }
 
-    modelChoosingTable = new int[choosingRulesSize + 1];
+    modelChoosingTable = new int[2 * choosingRulesSize + 1];
     modelChoosingTable[0] = choosingRulesSize;
 
-    modelChoosingRules.read((char *)(modelChoosingTable + 1), sizeof(int));
+    modelChoosingRules.read((char *)(modelChoosingTable + 1), 2 * choosingRulesSize * sizeof(int));
 
     if (!(modelChoosingRules.good() || modelChoosingRules.eof()))
     {
