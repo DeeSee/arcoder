@@ -8,28 +8,6 @@
 
 class ArcoderModel
 {
-//  int NO_OF_CHARS;
-//  int &EOF_SYMBOL;
-//  int &ESCAPE_SYMBOL;
-//  int NO_OF_SYMBOLS;
-
-//  std::vector<int> context;			// основные таблицы
-//  std::vector<int> freq;
-//  std::vector<int>	char_to_index;	// индексы символов в context
-//  std::vector<int>	index_to_char;	// символы по индексам
-//  int nsymbols; // Кол-во символов в таблице
-
-//public:
-
-////  unsigned long bit_counter; // Количество бит на выходе модели
-//  ArcoderModel(int symbolCount = 0);
-
-//#ifndef NDEBUG
-//  int getEOF_SYMBOL( void ) const {
-//    return EOF_SYMBOL;
-//  }
-//#endif
-
   static const int kNewSymbolCode = INT_MAX;
   static const int kEOFSymbolCode = kNewSymbolCode - 1;
 
